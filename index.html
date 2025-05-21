@@ -214,7 +214,7 @@
     function showRanking() {
       db.collection("reactionRanking")
         .orderBy("time")
-        .limit(10)
+        .limit(100)
         .get()
         .then((querySnapshot) => {
           rankingList.innerHTML = "";
