@@ -2,236 +2,33 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>반응속도 테스트</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: row;
-      height: 100vh;
-      background-color: #222;
-      color: white;
-    }
-    .ad {
-      width: 160px;
-      background: #f4f4f4;
-      color: black;
-      text-align: center;
-      padding: 10px;
-    }
-    .container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
-      text-align: center;
-      padding: 20px;
-    }
-    #nickname {
-      font-size: 20px;
-      padding: 8px;
-      margin-bottom: 10px;
-      width: 200px;
-    }
-    #message {
-      font-size: 28px;
-      margin: 20px 0;
-    }
-    #result {
-      font-size: 24px;
-      color: #0f0;
-      margin-top: 10px;
-    }
-    #start {
-      padding: 10px 20px;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    #ranking {
-      margin-top: 40px;
-      width: 100%;
-      max-width: 400px;
-      background: #333;
-      padding: 10px;
-      border-radius: 10px;
-      overflow-y: auto;
-      max-height: 300px;
-    }
-    #ranking h3 {
-      margin-bottom: 10px;
-      font-size: 20px;
-      border-bottom: 1px solid #777;
-    }
-    #ranking ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    #ranking li {
-      font-size: 16px;
-      padding: 4px 0;
-      border-bottom: 1px solid #555;
-    }
-  </style>
-
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3922135705918865"
-          crossorigin="anonymous"></script>
-
-  <!-- Firebase SDK v8 -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
-  <script>
-    // Firebase 설정 (프로젝트에 맞게 수정)
-    const firebaseConfig = {
-      apiKey: "AIzaSyA9AwuTKyrISlvnltgpqsA3h1vklsHmgNE",
-      authDomain: "reaction-test-ce722.firebaseapp.com",
-      projectId: "reaction-test-ce722",
-      storageBucket: "reaction-test-ce722.firebasestorage.app",
-      messagingSenderId: "521611260971",
-      appId: "1:521611260971:web:340e3bcdd043606b60e66e",
-      measurementId: "G-132WLHW093"
-    };
-
-    // Firebase 초기화
-    firebase.initializeApp(firebaseConfig);
-    firebase.analytics();
-    const db = firebase.firestore();
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>부가세 계산기</title>
+  <meta name="description" content="간편 부가세 계산기 – 과세금액 입력만으로 부가세와 총액을 바로 확인하세요.">
+  <meta name="keywords" content="부가세, VAT 계산기, 세금 계산, 사업자">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="ad">
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-3922135705918865"
-         data-ad-slot="5327664478"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-  </div>
-
-  <div class="container" id="gameArea">
-    <input type="text" id="nickname" placeholder="닉네임 입력 (필수)" />
-    <div id="message">시작하려면 버튼을 누르세요</div>
-    <button id="start">시작</button>
-    <div id="result"></div>
-    <div id="ranking">
-      <h3>📋 최근 랭킹 (모두와 공유)</h3>
-      <ul id="rankingList"></ul>
-    </div>
-  </div>
-
-  <div class="ad">
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-3922135705918865"
-         data-ad-slot="5327664478"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+<body class="flex items-center justify-center h-screen bg-gray-50">
+  <div class="w-full max-w-sm p-6 bg-white rounded-lg shadow">
+    <h1 class="text-2xl font-bold mb-4 text-center">부가세 계산기</h1>
+    <input id="amount" type="number" placeholder="과세 금액 입력"
+      class="w-full p-2 mb-4 border rounded" />
+    <button id="calcBtn"
+      class="w-full py-2 mb-4 bg-blue-500 text-white rounded hover:bg-blue-600">
+      계산하기
+    </button>
+    <div id="result" class="text-center text-lg font-medium"></div>
   </div>
 
   <script>
-    let startTime, timeout;
-    let readyToClick = false;
-    let gameStarted = false;
-
-    const startBtn = document.getElementById("start");
-    const message = document.getElementById("message");
-    const result = document.getElementById("result");
-    const gameArea = document.getElementById("gameArea");
-    const nicknameInput = document.getElementById("nickname");
-    const rankingList = document.getElementById("rankingList");
-
-    startBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const nickname = nicknameInput.value.trim();
-      if (!nickname) {
-        alert("닉네임을 입력해주세요!");
-        return;
-      }
-
-      if (gameStarted) return;
-
-      gameStarted = true;
-      startBtn.style.display = "none";
-      message.textContent = "초록색이 나오면 클릭하세요...";
-      result.textContent = "";
-      document.body.style.backgroundColor = "#222";
-
-      timeout = setTimeout(() => {
-        document.body.style.backgroundColor = "#2ecc71";
-        message.textContent = "지금 클릭하세요!";
-        startTime = new Date().getTime();
-        readyToClick = true;
-      }, Math.random() * 3000 + 2000);
+    document.getElementById('calcBtn').addEventListener('click', () => {
+      const amt = parseFloat(document.getElementById('amount').value) || 0;
+      const vat = Math.round(amt * 0.1);
+      const total = amt + vat;
+      document.getElementById('result').innerText =
+        `부가세: ${vat.toLocaleString()}원  총액: ${total.toLocaleString()}원`;
     });
-
-    gameArea.addEventListener("click", () => {
-      if (!gameStarted) return;
-
-      if (readyToClick) {
-        const reactionTime = new Date().getTime() - startTime;
-        const nickname = nicknameInput.value.trim();
-        result.textContent = `당신의 반응속도: ${reactionTime}ms`;
-        message.textContent = "다시 하시려면 버튼을 누르세요";
-        startBtn.style.display = "inline-block";
-
-        saveToRanking(nickname, reactionTime);
-
-        readyToClick = false;
-        gameStarted = false;
-        showRanking();
-      } else {
-        clearTimeout(timeout);
-        document.body.style.backgroundColor = "#e74c3c";
-        message.textContent = "너무 빨랐어요! 다시 시도해보세요.";
-        result.textContent = "";
-        startBtn.style.display = "inline-block";
-        readyToClick = false;
-        gameStarted = false;
-      }
-    });
-
-    function saveToRanking(nick, time) {
-      db.collection("reactionRanking").add({
-        nick: nick,
-        time: time,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch((error) => {
-        console.error("Firestore 저장 에러:", error);
-      });
-    }
-
-    function showRanking() {
-      db.collection("reactionRanking")
-        .orderBy("time")
-        .limit(100)
-        .get()
-        .then((querySnapshot) => {
-          rankingList.innerHTML = "";
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const li = document.createElement("li");
-            li.textContent = `${data.nick} - ${data.time}ms`;
-            rankingList.appendChild(li);
-          });
-        })
-        .catch((error) => {
-          console.error("Firestore 읽기 에러:", error);
-        });
-    }
-
-    // 페이지 로드 시 랭킹 표시
-    showRanking();
   </script>
 </body>
 </html>
+
